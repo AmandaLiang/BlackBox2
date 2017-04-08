@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BlackBox2</string>
+    <string name="location">Hello world!</string>
 </resources>
