@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements
             mLongitudeText.setText(String.format( mLongitudeLabel,"%s: %f",
                     mLastLocation.getLongitude()));
         } else {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient);
             Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
         }
     }
