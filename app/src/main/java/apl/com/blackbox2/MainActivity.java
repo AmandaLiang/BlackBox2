@@ -2,18 +2,11 @@ package apl.com.blackbox2;
 
 import android.os.Bundle;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.widget.Toast;
 import android.util.Log;
 import android.Manifest;
-import android.os.Build;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.content.Intent;
-import android.provider.Settings;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.support.v4.app.ActivityCompat;
@@ -23,11 +16,14 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.vision.text.Text;
 
 //Fix later
 public class MainActivity extends AppCompatActivity implements
         ConnectionCallbacks, OnConnectionFailedListener {
+
+    // http://stackoverflow.com/questions/35163953/android-runtime-permissions-how-to-implement
+    // need to define REQUEST_LOCATION as an int for checkPermissions method to work
+    private static final int REQUEST_LOCATION = 1;
 
     protected static final String TAG = "MainActivity";
 
@@ -41,19 +37,6 @@ public class MainActivity extends AppCompatActivity implements
     protected String mLongitudeLabel;
     protected TextView mLatitudeText;
     protected TextView mLongitudeText;
-
-    // fix this later: fallback if google API doesn't work / no internet
-//    private LocationManager locationManager;
-//    private LocationListener locationListener;
-//    private TextView t;
-
-//    protected synchronized void buildGoogleApiClient() {
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .addApi(LocationServices.API)
-//                .build();
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,34 +70,6 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
     }
 
-    //Fix later
-    // locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-    // locationListener = new LocationListener() {
-        /*    @Override
-            public void onLocationChanged(Location location) {
-                t.append("\n " + location.getLongitude() + " " + location.getLatitude());
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-                Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(i);
-            }
-        };*/
-    /*
-        // provider, time (500 ms so 0.5s), movement from prev location (1 m)
-        locationManager.requestLocationUpdates("gps", 500, 1, locationListener); */
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -136,13 +91,25 @@ public class MainActivity extends AppCompatActivity implements
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
 
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        // permission check
+        // https://developers.google.com/android/guides/permissions
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        } else {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+
         if (mLastLocation != null) {
             mLatitudeText.setText(String.format(mLatitudeLabel,"%s: %f",
                     mLastLocation.getLatitude()));
             mLongitudeText.setText(String.format( mLongitudeLabel,"%s: %f",
                     mLastLocation.getLongitude()));
         } else {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient);
             Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
         }
     }

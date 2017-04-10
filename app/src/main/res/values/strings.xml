@@ -4,6 +4,6 @@
     <string name="longitude_label">Longitude</string>
 
     <string name="no_location_detected">
-        No location detected. Make sure location is enabled on the device.
+        No location detected. Make sure Google location is enabled in settings.
     </string>
 </resources>
