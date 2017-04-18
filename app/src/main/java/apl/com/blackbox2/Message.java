@@ -5,9 +5,6 @@ package apl.com.blackbox2;
  */
 
 public class Message {
-    public Message(){
-
-    }
     //
     //
     //
