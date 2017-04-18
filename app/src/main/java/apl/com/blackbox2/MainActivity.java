@@ -10,33 +10,68 @@ import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.support.v4.app.ActivityCompat;
+import android.widget.Button;
+import android.support.v7.widget.Toolbar;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationSettingsRequest;
+
 
 //Fix later
 public class MainActivity extends AppCompatActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener {
-
-    // http://stackoverflow.com/questions/35163953/android-runtime-permissions-how-to-implement
-    // need to define REQUEST_LOCATION as an int for checkPermissions method to work
-    private static final int REQUEST_LOCATION = 1;
+        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     protected static final String TAG = "MainActivity";
 
-    //Entry for Google Play Services, hopefully.
+    // http://stackoverflow.com/questions/35163953/android-runtime-permissions-how-to-implement
+    // need to define REQUEST_CHECK_SETTINGS as an int for checkPermissions method to work
+    protected static final int REQUEST_CHECK_SETTINGS = 1;
+
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+    // storing activity state in bundle?
+    protected final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
+    protected final static String KEY_LOCATION = "location";
+    protected final static String KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string";
+
+    //Entry for Google Play Services?
     protected GoogleApiClient mGoogleApiClient;
 
-    //Fields for Play Services -- copy and paste into new class later if works.
-    protected Location mLastLocation;
-    //More fields.
+    /**
+     * Stores parameters for requests to the FusedLocationProviderApi.
+     */
+    protected LocationRequest mLocationRequest;
+    // Used for checking settings to determine if the device has optimal location settings.
+    protected LocationSettingsRequest mLocationSettingsRequest;
+    //Represents a geographical location.
+
+    protected Location mCurrentLocation;
+
+    //UI widgets
+    protected Button mStartUpdatesButton;
+    protected Button mStopUpdatesButton;
+    protected TextView mLastUpdateTimeTextView;
+    protected TextView mLatitudeTextView;
+    protected TextView mLongitudeTextView;
+    protected TextView mLocationInadequateWarning;
+
+    // labels
     protected String mLatitudeLabel;
     protected String mLongitudeLabel;
-    protected TextView mLatitudeText;
-    protected TextView mLongitudeText;
+    protected String mLastUpdateTimeLabel;
+
+    // status of location updates
+    protected Boolean mRequestingLocationUpdates;
+
+    // time of update
+    protected String mLastUpdateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,14 +79,21 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLatitudeLabel = getResources().getString(R.string.latitude_label);
-        mLongitudeLabel = getResources().getString(R.string.longitude_label);
-        mLatitudeText = (TextView) findViewById((R.id.latitude_text));
-        mLongitudeText = (TextView) findViewById((R.id.longitude_text));
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        // Locate the UI widgets.
+        mStartUpdatesButton = (Button) findViewById(R.id.start_updates_button);
+        mStopUpdatesButton = (Button) findViewById(R.id.stop_updates_button);
+        mLatitudeTextView = (TextView) findViewById(R.id.latitude_text);
+        mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
+        mLastUpdateTimeTextView = (TextView) findViewById(R.id.last_update_time_text);
+        mLocationInadequateWarning = (TextView) findViewById(R.id.location_inadequate_warning);
 
         buildGoogleApiClient();
 
-        //Permision fix for mLastLocation bug... I have no idea why this works or what it does.
+        //permissions fix for mLastLocation
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.INTERNET}
                     ,10);

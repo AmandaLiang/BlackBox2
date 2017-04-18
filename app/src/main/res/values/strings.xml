@@ -2,6 +2,10 @@
     <string name="app_name">BlackBox2</string>
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
+    <string name="start_updates">Start updates</string>
+    <string name="stop_updates">Stop updates</string>
+    <string name="location_updated_message">Location updated</string>
+    <string name="location_settings_inadequate_warning">The location settings on the device are not adequate to run this sample. Fix in Settings.</string>
 
     <string name="no_location_detected">
         No location detected. Make sure Google location is enabled in settings.
