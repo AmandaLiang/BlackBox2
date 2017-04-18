@@ -10,7 +10,7 @@ Should
    which includes location 
    and time data
    to a designated individual
-   by any means necessary
+   by any means necessary - text, email, push notif etc. 
 
 2. send a broadcast burst to nearby devices
    which includes time data
